@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "It's the telegram bot for mention all users in group",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "telegraf": "^4.16.3",
     "telegram": "^2.25.9"
   },

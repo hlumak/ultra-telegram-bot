@@ -1,6 +1,14 @@
 const {Api, TelegramClient} = require('telegram');
 const {StringSession} = require('telegram/sessions');
 const {Telegraf} = require('telegraf');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+if (!process.env.BOT_TOKEN || !process.env.API_ID || !process.env.API_HASH) {
+  console.error('Missing required environment variables');
+  process.exit(1);
+}
 
 const client = new TelegramClient(
   new StringSession(''),
@@ -11,10 +19,15 @@ const client = new TelegramClient(
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const startGramJS = async () => {
-  await client.start({
-    botAuthToken: process.env.BOT_TOKEN
-  });
-  console.log(client.session.save());
+  try {
+    await client.start({
+      botAuthToken: process.env.BOT_TOKEN
+    });
+    console.log('GramJS client started');
+    console.log(client.session.save());
+  } catch (error) {
+    console.error('Error starting GramJS client:', error);
+  }
 };
 
 const getAllMembers = async (groupId) => {
@@ -45,6 +58,7 @@ const getAllMembers = async (groupId) => {
     return usersToMention;
   } catch (error) {
     console.error('Error fetching members:', error);
+    return [];
   }
 };
 
@@ -55,23 +69,24 @@ bot.command('tag_all', async (ctx) => {
     await ctx.replyWithAnimation(process.env.GIF_ID);
     const users = await getAllMembers(chatId);
 
-    let mentionText = '';
+    const mentionChunks = [];
     const maxMessageLength = 4096;
+    let currentChunk = [];
 
-    let messageChunks = [];
     for (const user of users) {
       const mention = user.username ? `@${user.username} ` : `<a href="tg://user?id=${user.id}">${user.firstName}</a> `;
+      currentChunk.push(mention);
 
-      if ((mentionText + mention).length > maxMessageLength) {
-        messageChunks.push(mentionText.trim());
-        mentionText = mention;
-      } else {
-        mentionText += mention;
+      if (currentChunk.join('').length > maxMessageLength) {
+        mentionChunks.push(currentChunk.join('').trim());
+        currentChunk = [mention];
       }
     }
-    messageChunks.push(mentionText.trimEnd());
+    if (currentChunk.length > 0) {
+      mentionChunks.push(currentChunk.join('').trim());
+    }
 
-    for (const chunk of messageChunks) {
+    for (const chunk of mentionChunks) {
       await ctx.replyWithHTML(chunk);
     }
   } else {
@@ -82,6 +97,7 @@ bot.command('tag_all', async (ctx) => {
 (async () => {
   await startGramJS();
   await bot.launch();
+  console.log('Bot launched');
 })();
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
