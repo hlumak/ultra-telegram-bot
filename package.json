@@ -1,0 +1,19 @@
+{
+  "name": "tag-all-bot",
+  "version": "1.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --env-file .env index.js"
+  },
+  "keywords": [],
+  "author": "Hlumak",
+  "license": "ISC",
+  "description": "It's the telegram bot for mention all users in group",
+  "dependencies": {
+    "telegraf": "^4.16.3",
+    "telegram": "^2.25.9"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.6"
+  }
+}
