@@ -18,6 +18,10 @@ const client = new TelegramClient(
 );
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+bot.telegram.setMyCommands([
+  {command: 'tag_all', description: 'Tag all members in the group'}
+]);
+
 const startGramJS = async () => {
   try {
     await client.start({
@@ -70,14 +74,14 @@ bot.command('tag_all', async (ctx) => {
     const users = await getAllMembers(chatId);
 
     const mentionChunks = [];
-    const maxMessageLength = 4096;
+    const MAX_MESSAGE_LENGTH = 4096;
     let currentChunk = [];
 
     for (const user of users) {
       const mention = user.username ? `@${user.username} ` : `<a href="tg://user?id=${user.id}">${user.firstName}</a> `;
       currentChunk.push(mention);
 
-      if (currentChunk.join('').length > maxMessageLength) {
+      if (currentChunk.join('').length > MAX_MESSAGE_LENGTH) {
         mentionChunks.push(currentChunk.join('').trim());
         currentChunk = [mention];
       }
