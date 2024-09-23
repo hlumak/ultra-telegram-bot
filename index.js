@@ -25,6 +25,10 @@ const startGramJS = async () => {
     });
     console.log('GramJS client started');
     console.log(client.session.save());
+    console.log('BOT_TOKEN:', process.env.BOT_TOKEN);
+    console.log('API_ID:', process.env.API_ID);
+    console.log('API_HASH:', process.env.API_HASH);
+    console.log('GIF_ID:', process.env.GIF_ID);
   } catch (error) {
     console.error('Error starting GramJS client:', error);
   }
