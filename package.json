@@ -1,18 +1,22 @@
 {
   "name": "tag-all-bot",
-  "version": "1.0",
+  "version": "1.1",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "telegram",
+    "bot",
+    "tag-all"
+  ],
   "author": "Hlumak",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "description": "It's the telegram bot for mention all users in group",
   "dependencies": {
     "dotenv": "^16.4.5",
-    "telegraf": "^4.16.3",
+    "node-telegram-bot-api": "^0.66.0",
     "telegram": "^2.25.9"
   },
   "devDependencies": {
