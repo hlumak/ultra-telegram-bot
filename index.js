@@ -120,11 +120,11 @@ const updateTagMessage = (groupId, message, type) => {
   }
 };
 
-bot.onText(/\/set_tag_message/, (msg) => {
+bot.onText(/\/set_tag_message/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
-    bot.sendMessage(chatId, 'Напиши повідомлення, скинь гіфку aбо стікер:');
+    await bot.sendMessage(chatId, 'Напиши повідомлення, скинь гіфку aбо стікер:');
 
     const handleMessage = async (message, type) => {
       const content = (type === 'text') ? message.text :
@@ -133,22 +133,22 @@ bot.onText(/\/set_tag_message/, (msg) => {
 
       if (content) {
         updateTagMessage(chatId, content, type);
-        bot.sendMessage(chatId, `${type === 'text' ? 'Повідомлення' : type === 'gif' ? 'Гіфка' : 'Стікер'} для тегування оновлено.`);
+        await bot.sendMessage(chatId, `${type === 'text' ? 'Повідомлення' : type === 'gif' ? 'Гіфка' : 'Стікер'} для тегування оновлено.`);
       }
     };
 
-    bot.once('message', (message) => {
-      if (message.text) handleMessage(message, 'text');
-      else if (message.animation) handleMessage(message, 'gif');
-      else if (message.sticker) handleMessage(message, 'sticker');
+    bot.once('message', async (message) => {
+      if (message.text) await handleMessage(message, 'text');
+      else if (message.animation) await handleMessage(message, 'gif');
+      else if (message.sticker) await handleMessage(message, 'sticker');
     });
   } else {
-    bot.sendMessage(chatId, 'Цю команду можна використовувати тільки в групі!');
+    await bot.sendMessage(chatId, 'Цю команду можна використовувати тільки в групі!');
   }
 });
 
-bot.onText(/\/about/, (msg) => {
-  bot.sendMessage(msg.chat.id, 'Це бот для тегування усіх учасників группи. Автор: @v_hlumak');
+bot.onText(/\/about/, async (msg) => {
+  await bot.sendMessage(msg.chat.id, 'Це бот для тегування усіх учасників группи. Автор: @v_hlumak');
 });
 
 (async () => {
