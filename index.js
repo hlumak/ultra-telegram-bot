@@ -2,6 +2,8 @@ const TelegramBot = require('node-telegram-bot-api');
 const dotenv = require('dotenv');
 const {Api, TelegramClient} = require('telegram');
 const {StringSession} = require('telegram/sessions');
+const {db} = require('./firebaseConfig');
+const {collection, getDocs, query, where, setDoc, doc} = require('firebase/firestore');
 
 dotenv.config();
 
@@ -18,8 +20,6 @@ const client = new TelegramClient(
   process.env.API_HASH,
   {connectionRetries: 5}
 );
-
-const tagCommands = [];
 
 const startGramJS = async () => {
   try {
@@ -65,11 +65,24 @@ const getAllMembers = async (groupId) => {
   }
 };
 
+const getGroupCommand = async (groupId) => {
+  const groupRef = collection(db, 'groups');
+  const q = query(groupRef, where('groupId', '==', groupId));
+
+  try {
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty ? querySnapshot.docs[0].data() : null;
+  } catch (error) {
+    console.error('Error fetching group command:', error);
+  }
+};
+
 bot.onText(/\/tag_all/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
-    const groupCommand = tagCommands.find(command => command.group === chatId);
+    const groupCommand = await getGroupCommand(chatId);
+
     if (groupCommand && groupCommand.message) {
       if (groupCommand.type === 'sticker') {
         await bot.sendSticker(chatId, groupCommand.message);
@@ -79,11 +92,11 @@ bot.onText(/\/tag_all/, async (msg) => {
         await bot.sendMessage(chatId, groupCommand.message);
       }
     } else {
-      tagCommands.push({group: chatId, message: 'Тегаю всіх', type: 'text'});
+      await updateTagMessage(chatId, 'Тегаю всіх', 'text');
       await bot.sendMessage(chatId, 'Тегаю всіх');
     }
 
-    const users = await getAllMembers(chatId);
+    let users = await getAllMembers(chatId);
 
     const mentionChunks = [];
     const MAX_MESSAGE_LENGTH = 4096;
@@ -106,17 +119,20 @@ bot.onText(/\/tag_all/, async (msg) => {
       await bot.sendMessage(chatId, chunk, {parse_mode: 'HTML'});
     }
   } else {
-    await bot.sendMessage(chatId, 'Цю команду можна використовувати тільки в группі!');
+    await bot.sendMessage(chatId, 'Цю команду можна використовувати тільки в групі!');
   }
 });
 
-const updateTagMessage = (groupId, message, type) => {
-  const commandIndex = tagCommands.findIndex(command => command.group === groupId);
-  if (commandIndex !== -1) {
-    tagCommands[commandIndex].message = message;
-    tagCommands[commandIndex].type = type;
-  } else {
-    tagCommands.push({group: groupId, message, type});
+const updateTagMessage = async (groupId, message, type) => {
+  try {
+    await setDoc(doc(db, 'groups', groupId.toString()), {
+      groupId,
+      message,
+      type
+    }, {merge: true});
+    console.log(`Group ${groupId} updated with new message and type.`);
+  } catch (error) {
+    console.error('Error updating tag message:', error);
   }
 };
 
@@ -124,7 +140,7 @@ bot.onText(/\/set_tag_message/, async (msg) => {
   const chatId = msg.chat.id;
 
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') {
-    await bot.sendMessage(chatId, 'Напиши повідомлення, скинь гіфку aбо стікер:');
+    await bot.sendMessage(chatId, 'Напиши повідомлення, скинь гіфку або стікер:');
 
     const handleMessage = async (message, type) => {
       const content = (type === 'text') ? message.text :
@@ -132,7 +148,7 @@ bot.onText(/\/set_tag_message/, async (msg) => {
           (type === 'sticker') ? message.sticker.file_id : null;
 
       if (content) {
-        updateTagMessage(chatId, content, type);
+        await updateTagMessage(chatId, content, type);
         await bot.sendMessage(chatId, `${type === 'text' ? 'Повідомлення' : type === 'gif' ? 'Гіфка' : 'Стікер'} для тегування оновлено.`);
       }
     };

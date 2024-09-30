@@ -1,6 +1,6 @@
 {
   "name": "tag-all-bot",
-  "version": "1.1",
+  "version": "1.2",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -16,10 +16,11 @@
   "description": "It's the telegram bot for mention all users in group",
   "dependencies": {
     "dotenv": "^16.4.5",
+    "firebase": "^10.13.2",
     "node-telegram-bot-api": "^0.66.0",
     "telegram": "^2.25.11"
   },
   "devDependencies": {
-    "nodemon": "^3.1.6"
+    "nodemon": "^3.1.7"
   }
 }
