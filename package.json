@@ -1,10 +1,11 @@
 {
   "name": "tag-all-bot",
-  "version": "1.2",
-  "main": "index.js",
+  "version": "1.3",
+  "main": "bot.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
   },
   "keywords": [
     "telegram",
@@ -15,12 +16,12 @@
   "license": "GPL-3.0",
   "description": "It's the telegram bot for mention all users in group",
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "firebase": "^10.13.2",
-    "node-telegram-bot-api": "^0.66.0",
-    "telegram": "^2.25.11"
+    "dotenv": "^16.4.7",
+    "firebase": "^11.2.0",
+    "grammy": "^1.34.0",
+    "telegram": "^2.26.16"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.9"
   }
 }
