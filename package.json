@@ -1,6 +1,6 @@
 {
   "name": "tag-all-bot",
-  "version": "1.4",
+  "version": "1.5",
   "main": "bot.js",
   "type": "module",
   "scripts": {

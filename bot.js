@@ -126,7 +126,7 @@ bot.command('tag_all', async (ctx) => {
     const {message, type} = groupCommand;
     if (type === 'sticker') await ctx.replyWithSticker(message);
     else if (type === 'gif') await ctx.replyWithAnimation(message);
-    else await ctx.reply(message);
+    else await ctx.reply(message, {parse_mode: 'HTML'});
   } else {
     await updateTagMessage(chatId, 'Тегаю всіх', 'text');
     await ctx.reply('Тегаю всіх');
@@ -197,11 +197,30 @@ composer.on('message', async (ctx) => {
   }
 
   const groupId = groupTagSettings.get(userId);
-  const {text, animation, sticker} = ctx.message;
+  const {text, animation, sticker, entities} = ctx.message;
+
+  if (text?.trim() === '/start') {
+    return;
+  }
 
   try {
-    if (text) await updateTagMessage(groupId, text, 'text');
-    else if (animation) await updateTagMessage(groupId, animation.file_id, 'gif');
+    if (text) {
+      let formattedText = text;
+
+      if (entities) {
+        for (const entity of entities) {
+          if (entity.type === 'custom_emoji' && entity.custom_emoji_id) {
+            const emojiChar = text.slice(entity.offset, entity.offset + entity.length);
+            const emojiTag = `<tg-emoji emoji-id="${entity.custom_emoji_id}">${emojiChar}</tg-emoji>`;
+            formattedText = formattedText.slice(0, entity.offset) +
+              emojiTag +
+              formattedText.slice(entity.offset + entity.length);
+          }
+        }
+      }
+
+      await updateTagMessage(groupId, formattedText, 'text');
+    } else if (animation) await updateTagMessage(groupId, animation.file_id, 'gif');
     else if (sticker) await updateTagMessage(groupId, sticker.file_id, 'sticker');
     else return ctx.reply('Надішліть текст, стікер або гіфку.');
 
