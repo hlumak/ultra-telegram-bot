@@ -114,42 +114,28 @@ bot.command('about', async (ctx) => {
   await ctx.reply('Це бот для тегування усіх учасників группи. Автор: @v_hlumak');
 });
 
-bot.command('tag_all', async (ctx) => {
+bot.command(['tag_all', 'tag_all_silent'], async (ctx) => {
   const chatId = ctx.chat.id;
   if (!['group', 'supergroup'].includes(ctx.chat.type)) {
     return ctx.reply('Цю команду можна використовувати тільки в групі!');
   }
 
-  const groupCommand = await getGroupCommand(chatId);
+  if (ctx.message.text.match(/^\/tag_all(@| |$)/)) {
+    const groupCommand = await getGroupCommand(chatId);
 
-  if (groupCommand?.message) {
-    const {message, type} = groupCommand;
-    if (type === 'sticker') await ctx.replyWithSticker(message);
-    else if (type === 'gif') await ctx.replyWithAnimation(message);
-    else await ctx.reply(message, {parse_mode: 'HTML'});
-  } else {
-    await updateTagMessage(chatId, 'Тегаю всіх', 'text');
-    await ctx.reply('Тегаю всіх');
+    if (groupCommand?.message) {
+      const {message, type} = groupCommand;
+      if (type === 'sticker') await ctx.replyWithSticker(message);
+      else if (type === 'gif') await ctx.replyWithAnimation(message);
+      else await ctx.reply(message, {parse_mode: 'HTML'});
+    } else {
+      await updateTagMessage(chatId, 'Тегаю всіх', 'text');
+      await ctx.reply('Тегаю всіх');
+    }
   }
 
   const users = await getAllMembers(chatId);
   if (users.length === 0) return ctx.reply('Не вдалося отримати список учасників.');
-
-  const mentionChunks = splitMentionsIntoChunks(users);
-  for (const chunk of mentionChunks) {
-    await ctx.reply(chunk, {parse_mode: 'HTML'});
-  }
-});
-
-bot.command('tag_all_silent', async (ctx) => {
-  const chatId = ctx.chat.id;
-
-  if (!['group', 'supergroup'].includes(ctx.chat.type)) {
-    return ctx.reply('Цю команду можна використовувати тільки в групі!');
-  }
-
-  const users = await getAllMembers(chatId);
-  if (!users.length) return ctx.reply('Не вдалося отримати список учасників.');
 
   const mentionChunks = splitMentionsIntoChunks(users);
   for (const chunk of mentionChunks) {
