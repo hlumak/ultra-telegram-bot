@@ -114,7 +114,7 @@ bot.command('about', async (ctx) => {
   await ctx.reply('Це бот для тегування усіх учасників группи. Автор: @v_hlumak');
 });
 
-bot.command(['tag_all', 'tag_all_silent'], async (ctx) => {
+bot.command(['tag_all', 'tag_all_without_msg'], async (ctx) => {
   const chatId = ctx.chat.id;
   if (!['group', 'supergroup'].includes(ctx.chat.type)) {
     return ctx.reply('Цю команду можна використовувати тільки в групі!');
@@ -143,13 +143,53 @@ bot.command(['tag_all', 'tag_all_silent'], async (ctx) => {
   }
 });
 
+const processTagMessage = async (ctx, message, groupId = ctx.chat.id) => {
+  const {text, animation, sticker, entities} = message;
+
+  try {
+    if (text) {
+      let formattedText = text;
+
+      if (entities) {
+        for (const entity of entities) {
+          if (entity.type === 'custom_emoji' && entity.custom_emoji_id) {
+            const emojiChar = text.slice(entity.offset, entity.offset + entity.length);
+            const emojiTag = `<tg-emoji emoji-id="${entity.custom_emoji_id}">${emojiChar}</tg-emoji>`;
+            formattedText = formattedText.slice(0, entity.offset) +
+              emojiTag +
+              formattedText.slice(entity.offset + entity.length);
+          }
+        }
+      }
+
+      await updateTagMessage(groupId, formattedText, 'text');
+    } else if (animation) {
+      await updateTagMessage(groupId, animation.file_id, 'gif');
+    } else if (sticker) {
+      await updateTagMessage(groupId, sticker.file_id, 'sticker');
+    } else {
+      return ctx.reply('Надішліть текст, стікер або гіфку.');
+    }
+
+    await ctx.reply('Повідомлення для тегування оновлено.');
+  } catch (error) {
+    console.error('Error updating tag message:', error);
+    await ctx.reply('Помилка при оновленні повідомлення.');
+  }
+};
+
 const groupTagSettings = new Map();
 
 bot.command('set_tag_message', async (ctx) => {
   const userId = ctx.from.id;
+  const replyToMessage = ctx.message.reply_to_message;
 
   if (!['group', 'supergroup'].includes(ctx.chat.type)) {
     return ctx.reply('Цю команду можна використовувати тільки в групі!');
+  }
+
+  if (replyToMessage) {
+    return processTagMessage(ctx, replyToMessage);
   }
 
   try {
@@ -183,40 +223,9 @@ composer.on('message', async (ctx) => {
   }
 
   const groupId = groupTagSettings.get(userId);
-  const {text, animation, sticker, entities} = ctx.message;
+  groupTagSettings.delete(userId);
 
-  if (text?.trim() === '/start') {
-    return;
-  }
-
-  try {
-    if (text) {
-      let formattedText = text;
-
-      if (entities) {
-        for (const entity of entities) {
-          if (entity.type === 'custom_emoji' && entity.custom_emoji_id) {
-            const emojiChar = text.slice(entity.offset, entity.offset + entity.length);
-            const emojiTag = `<tg-emoji emoji-id="${entity.custom_emoji_id}">${emojiChar}</tg-emoji>`;
-            formattedText = formattedText.slice(0, entity.offset) +
-              emojiTag +
-              formattedText.slice(entity.offset + entity.length);
-          }
-        }
-      }
-
-      await updateTagMessage(groupId, formattedText, 'text');
-    } else if (animation) await updateTagMessage(groupId, animation.file_id, 'gif');
-    else if (sticker) await updateTagMessage(groupId, sticker.file_id, 'sticker');
-    else return ctx.reply('Надішліть текст, стікер або гіфку.');
-
-    await ctx.reply('Повідомлення для тегування оновлено.');
-  } catch (error) {
-    console.error('Error updating tag message:', error);
-    await ctx.reply('Помилка при оновленні повідомлення.');
-  } finally {
-    groupTagSettings.delete(userId);
-  }
+  await processTagMessage(ctx, ctx.message, groupId);
 });
 
 bot.use(composer.middleware());
@@ -225,7 +234,7 @@ bot.use(composer.middleware());
 
   await bot.api.setMyCommands([
     {command: 'tag_all', description: 'Tag all group members'},
-    {command: 'tag_all_silent', description: 'Tag all members without a message'},
+    {command: 'tag_all_without_msg', description: 'Tag all members without a message'},
     {command: 'set_tag_message', description: 'Update the tagging message'},
     {command: 'about', description: 'About bot and author'}
   ]);
