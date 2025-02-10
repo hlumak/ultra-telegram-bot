@@ -1,14 +1,14 @@
-import {Bot, Composer} from 'grammy';
-import {Api, TelegramClient} from 'telegram';
-import {StringSession} from 'telegram/sessions/index.js';
-import dotenv from 'dotenv';
-import {db} from './firebaseConfig.js';
-import {collection, doc, getDocs, query, setDoc, where} from 'firebase/firestore';
+const { Bot, Composer } = require('grammy');
+const { Api, TelegramClient } = require('telegram');
+const { StringSession } = require('telegram/sessions');
+const { db } = require('./firebaseConfig');
+const { collection, doc, getDocs, query, setDoc, where } = require('firebase/firestore');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
 const REQUIRED_ENV_VARS = ['BOT_TOKEN', 'API_ID', 'API_HASH'];
-const missingEnvVars = REQUIRED_ENV_VARS.filter((envVar) => !process.env[envVar]);
+const missingEnvVars = REQUIRED_ENV_VARS.filter(envVar => !process.env[envVar]);
 if (missingEnvVars.length) {
   console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
   process.exit(1);
@@ -20,7 +20,7 @@ const client = new TelegramClient(
   new StringSession(''),
   +process.env.API_ID,
   process.env.API_HASH,
-  {connectionRetries: 5}
+  { connectionRetries: 5 }
 );
 
 const startGramJS = async () => {
@@ -34,7 +34,7 @@ const startGramJS = async () => {
   }
 };
 
-const getAllMembers = async (groupId) => {
+const getAllMembers = async groupId => {
   const LIMIT = 100;
   let offset = 0;
   const usersToMention = [];
@@ -48,13 +48,11 @@ const getAllMembers = async (groupId) => {
           filter: new Api.ChannelParticipantsRecent({}),
           offset,
           LIMIT,
-          hash: BigInt(0)
+          hash: BigInt('-4156887774564')
         })
       );
 
-      usersToMention.push(
-        ...participants.users.filter((user) => !user.bot)
-      );
+      usersToMention.push(...participants.users.filter(user => !user.bot));
       offset += LIMIT;
     } while (participants.participants.length > 0);
 
@@ -65,7 +63,7 @@ const getAllMembers = async (groupId) => {
   }
 };
 
-const getGroupCommand = async (groupId) => {
+const getGroupCommand = async groupId => {
   try {
     const groupRef = collection(db, 'groups');
     const q = query(groupRef, where('groupId', '==', groupId));
@@ -81,15 +79,15 @@ const updateTagMessage = async (groupId, message, type) => {
   try {
     await setDoc(
       doc(db, 'groups', groupId.toString()),
-      {groupId, message, type},
-      {merge: true}
+      { groupId, message, type },
+      { merge: true }
     );
   } catch (error) {
     console.error('Error updating tag message:', error);
   }
 };
 
-const splitMentionsIntoChunks = (users) => {
+const splitMentionsIntoChunks = users => {
   const MAX_MESSAGE_LENGTH = 4096;
   const mentionChunks = [];
   let currentChunk = '';
@@ -110,11 +108,11 @@ const splitMentionsIntoChunks = (users) => {
   return mentionChunks;
 };
 
-bot.command('about', async (ctx) => {
+bot.command('about', async ctx => {
   await ctx.reply('Це бот для тегування усіх учасників группи. Автор: @v_hlumak');
 });
 
-bot.command(['tag_all', 'tag_all_without_msg'], async (ctx) => {
+bot.command(['tag_all', 'tag_all_without_msg'], async ctx => {
   const chatId = ctx.chat.id;
   if (!['group', 'supergroup'].includes(ctx.chat.type)) {
     return ctx.reply('Цю команду можна використовувати тільки в групі!');
@@ -124,10 +122,10 @@ bot.command(['tag_all', 'tag_all_without_msg'], async (ctx) => {
     const groupCommand = await getGroupCommand(chatId);
 
     if (groupCommand?.message) {
-      const {message, type} = groupCommand;
+      const { message, type } = groupCommand;
       if (type === 'sticker') await ctx.replyWithSticker(message);
       else if (type === 'gif') await ctx.replyWithAnimation(message);
-      else await ctx.reply(message, {parse_mode: 'HTML'});
+      else await ctx.reply(message, { parse_mode: 'HTML' });
     } else {
       await updateTagMessage(chatId, 'Тегаю всіх', 'text');
       await ctx.reply('Тегаю всіх');
@@ -139,12 +137,12 @@ bot.command(['tag_all', 'tag_all_without_msg'], async (ctx) => {
 
   const mentionChunks = splitMentionsIntoChunks(users);
   for (const chunk of mentionChunks) {
-    await ctx.reply(chunk, {parse_mode: 'HTML'});
+    await ctx.reply(chunk, { parse_mode: 'HTML' });
   }
 });
 
 const processTagMessage = async (ctx, message, groupId = ctx.chat.id) => {
-  const {text, animation, sticker, entities} = message;
+  const { text, animation, sticker, entities } = message;
 
   try {
     if (text) {
@@ -155,7 +153,8 @@ const processTagMessage = async (ctx, message, groupId = ctx.chat.id) => {
           if (entity.type === 'custom_emoji' && entity.custom_emoji_id) {
             const emojiChar = text.slice(entity.offset, entity.offset + entity.length);
             const emojiTag = `<tg-emoji emoji-id="${entity.custom_emoji_id}">${emojiChar}</tg-emoji>`;
-            formattedText = formattedText.slice(0, entity.offset) +
+            formattedText =
+              formattedText.slice(0, entity.offset) +
               emojiTag +
               formattedText.slice(entity.offset + entity.length);
           }
@@ -180,7 +179,7 @@ const processTagMessage = async (ctx, message, groupId = ctx.chat.id) => {
 
 const groupTagSettings = new Map();
 
-bot.command('set_tag_message', async (ctx) => {
+bot.command('set_tag_msg', async ctx => {
   const userId = ctx.from.id;
   const replyToMessage = ctx.message.reply_to_message;
 
@@ -198,10 +197,8 @@ bot.command('set_tag_message', async (ctx) => {
       userId,
       'Напишіть повідомлення, скиньте гіфку або стікер для тегування в групі.'
     );
-
-    await ctx.reply('Перевірте свої особисті повідомлення для подальших інструкцій.');
   } catch (error) {
-    if (error.description?.includes('can\'t initiate conversation with a user')) {
+    if (error.description?.includes("can't initiate conversation with a user")) {
       await ctx.reply(
         'Будь ласка, почніть діалог з ботом, надіславши команду /start у особисті повідомлення.'
       );
@@ -214,7 +211,7 @@ bot.command('set_tag_message', async (ctx) => {
 
 const composer = new Composer();
 
-composer.on('message', async (ctx) => {
+composer.on('message', async ctx => {
   if (ctx.chat.type !== 'private') return;
 
   const userId = ctx.from.id;
@@ -233,10 +230,10 @@ bot.use(composer.middleware());
   await startGramJS();
 
   await bot.api.setMyCommands([
-    {command: 'tag_all', description: 'Tag all group members'},
-    {command: 'tag_all_without_msg', description: 'Tag all members without a message'},
-    {command: 'set_tag_message', description: 'Update the tagging message'},
-    {command: 'about', description: 'About bot and author'}
+    { command: 'tag_all', description: 'Tag all group members' },
+    { command: 'tag_all_without_msg', description: 'Tag all members without a message' },
+    { command: 'set_tag_msg', description: 'Update the tagging message' },
+    { command: 'about', description: 'About bot and author' }
   ]);
 
   await bot.start();
