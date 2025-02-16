@@ -16,9 +16,9 @@
   "description": "It's the telegram bot for mention all users in group",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "firebase": "^11.3.0",
-    "grammy": "^1.34.1",
-    "telegram": "^2.26.16"
+    "firebase": "^11.3.1",
+    "grammy": "^1.35.0",
+    "telegram": "^2.26.22"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
