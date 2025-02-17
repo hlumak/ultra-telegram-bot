@@ -1,10 +1,10 @@
 {
   "name": "tag-all-bot",
-  "version": "1.7.1",
+  "version": "2.0",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
-    "dev": "nodemon bot.js"
+    "start": "node main",
+    "dev": "nodemon main"
   },
   "keywords": [
     "telegram",
@@ -13,7 +13,7 @@
   ],
   "author": "Hlumak",
   "license": "GPL-3.0",
-  "description": "It's the telegram bot for mention all users in group",
+  "description": "It's the telegram bot for mention all users in the group",
   "dependencies": {
     "dotenv": "^16.4.7",
     "firebase": "^11.3.1",
