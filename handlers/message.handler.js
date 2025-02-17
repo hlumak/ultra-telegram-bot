@@ -5,6 +5,44 @@ class MessageHandler {
   constructor(dbService) {
     this.dbService = dbService;
     this.groupTagSettings = new Map();
+    this.messageTypeHandlers = {
+      text: message => ({
+        content: formatCustomEmojis(message.text, message.entities),
+        type: CONSTANTS.MESSAGE_TYPES.TEXT
+      }),
+      animation: message => ({
+        content: message.animation.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.GIF
+      }),
+      sticker: message => ({
+        content: message.sticker.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.STICKER
+      }),
+      video: message => ({
+        content: message.video.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.VIDEO
+      }),
+      photo: message => ({
+        content: message.photo[message.photo.length - 1].file_id,
+        type: CONSTANTS.MESSAGE_TYPES.PHOTO
+      }),
+      audio: message => ({
+        content: message.audio.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.AUDIO
+      }),
+      voice: message => ({
+        content: message.voice.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.VOICE
+      }),
+      video_note: message => ({
+        content: message.video_note.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.VIDEO_NOTE
+      }),
+      document: message => ({
+        content: message.document.file_id,
+        type: CONSTANTS.MESSAGE_TYPES.DOCUMENT
+      })
+    };
   }
 
   async handlePrivateMessage(ctx) {
@@ -38,7 +76,7 @@ class MessageHandler {
       this.groupTagSettings.set(userId, chatId);
       return ctx.api.sendMessage(
         userId,
-        'Напишіть повідомлення, скиньте гіфку або стікер для тегування в групі.'
+        'Напишіть повідомлення, скиньте стікер, гіфку, відео, фото, аудіо або голосове повідомлення для тегування в групі.'
       );
     } catch (error) {
       return this.handleSetTagMsgError(ctx, error);
@@ -46,25 +84,32 @@ class MessageHandler {
   }
 
   async processTagMessage(ctx, message, groupId = ctx.chat.id) {
-    const { text, animation, sticker, entities } = message;
-
     try {
-      if (text) {
-        const formattedText = formatCustomEmojis(text, entities);
-        await this.dbService.updateTagMessage(groupId, formattedText, 'text');
-      } else if (animation) {
-        await this.dbService.updateTagMessage(groupId, animation.file_id, 'gif');
-      } else if (sticker) {
-        await this.dbService.updateTagMessage(groupId, sticker.file_id, 'sticker');
-      } else {
-        return ctx.reply('Надішліть текст, стікер або гіфку.');
+      const messageType = this.getMessageType(message);
+      if (!messageType) {
+        return ctx.reply(
+          'Надішліть текст, стікер, гіфку, відео, фото, аудіо, документ або голосове повідомлення.'
+        );
       }
 
+      const handler = this.messageTypeHandlers[messageType];
+      const { content, type } = handler(message);
+
+      await this.dbService.updateTagMessage(groupId, content, type);
       return ctx.reply('Повідомлення для тегування оновлено.');
     } catch (error) {
       console.error('Error updating tag message:', error);
       return ctx.reply('Помилка при оновленні повідомлення.');
     }
+  }
+
+  getMessageType(message) {
+    return Object.keys(this.messageTypeHandlers).find(type => {
+      if (type === 'photo') {
+        return message[type] && message[type].length;
+      }
+      return message[type];
+    });
   }
 
   async handleSetTagMsgError(ctx, error) {

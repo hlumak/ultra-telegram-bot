@@ -1,20 +1,11 @@
 const { initializeApp } = require('firebase/app');
 const { getFirestore } = require('firebase/firestore');
 const dotenv = require('dotenv');
+const CONSTANTS = require('./constants');
 
 dotenv.config();
 
-const requiredEnvVars = [
-  'FIREBASE_API_KEY',
-  'FIREBASE_AUTH_DOMAIN',
-  'FIREBASE_PROJECT_ID',
-  'FIREBASE_STORAGE_BUCKET',
-  'FIREBASE_MESSAGING_SENDER_ID',
-  'FIREBASE_APP_ID',
-  'FIREBASE_MEASUREMENT_ID'
-];
-
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+const missingVars = CONSTANTS.REQUIRED_FIREBASE_ENV_VARS.filter(envVar => !process.env[envVar]);
 if (missingVars.length) {
   throw new Error(`Missing Firebase configuration variables: ${missingVars.join(', ')}`);
 }

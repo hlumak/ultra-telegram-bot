@@ -5,7 +5,7 @@ A powerful Telegram bot that helps manage group conversations by providing advan
 ## Features ✨
 
 - **Tag All Members**: Easily mention all group members with a single command
-- **Custom Tag Messages**: Set custom text, GIFs, or stickers for tagging
+- **Custom Tag Messages**: Set custom text, audio, video, photo, document, GIFs, or stickers for tagging
 - **Smart Chunking**: Automatically splits large member lists into manageable messages
 - **Custom Emoji Support**: Handles custom Telegram emojis in messages
 - **Supergroup Support**: Works in both regular groups and supergroups
@@ -75,26 +75,8 @@ npm start
 
 ### Setting Custom Tag Messages
 
-1. **Text Message**: Simply reply to any text message with `/set_tag_msg`
-2. **GIF/Sticker**: Reply to a GIF or sticker with `/set_tag_msg`
-3. **Private Message**: Use `/set_tag_msg` and send your message to the bot privately
-
-## Technical Details 🔧
-
-- Built with [grammY](https://grammy.dev) Telegram Bot framework
-- Uses [GramJS](https://gram.js.org) for member fetching
-- Firebase Firestore for data persistence
-- Implements message chunking for large groups
-- Handles custom emoji entities
-
-## Error Handling 🚨
-
-The bot includes comprehensive error handling for:
-- Invalid chat types
-- Missing permissions
-- API limitations
-- Network issues
-- Database errors
+1. **Reply Message**: Simply reply to any message with `/set_tag_msg`
+2. **Private Message**: Use `/set_tag_msg` and send your message to the bot privately
 
 ## License 📝
 

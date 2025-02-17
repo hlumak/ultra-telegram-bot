@@ -8,7 +8,11 @@ class CommandsHandler {
   }
 
   async handleAbout(ctx) {
-    return ctx.reply('Це бот для тегування усіх учасників группи. Автор: @v_hlumak');
+    return ctx.reply(
+      'Це бот для тегування усіх учасників группи.\n' +
+        'Автор: @v_hlumak <a href="https://github.com/hlumak938/ultra-telegram-bot">Github</a>',
+      { parse_mode: 'HTML' }
+    );
   }
 
   async handleTagAll(ctx) {
@@ -29,18 +33,24 @@ class CommandsHandler {
   async sendTagMessage(ctx, chatId) {
     const groupCommand = await this.dbService.getGroupCommand(chatId);
     if (!groupCommand?.message) {
-      await this.dbService.updateTagMessage(chatId, 'Тегаю всіх', 'text');
+      await this.dbService.updateTagMessage(chatId, 'Тегаю всіх', CONSTANTS.MESSAGE_TYPES.TEXT);
       return ctx.reply('Тегаю всіх');
     }
 
     const { message, type } = groupCommand;
     const messageHandlers = {
-      sticker: () => ctx.replyWithSticker(message),
-      gif: () => ctx.replyWithAnimation(message),
-      text: () => ctx.reply(message, { parse_mode: 'HTML' })
+      [CONSTANTS.MESSAGE_TYPES.STICKER]: () => ctx.replyWithSticker(message),
+      [CONSTANTS.MESSAGE_TYPES.GIF]: () => ctx.replyWithAnimation(message),
+      [CONSTANTS.MESSAGE_TYPES.VIDEO]: () => ctx.replyWithVideo(message),
+      [CONSTANTS.MESSAGE_TYPES.PHOTO]: () => ctx.replyWithPhoto(message),
+      [CONSTANTS.MESSAGE_TYPES.AUDIO]: () => ctx.replyWithAudio(message),
+      [CONSTANTS.MESSAGE_TYPES.VOICE]: () => ctx.replyWithVoice(message),
+      [CONSTANTS.MESSAGE_TYPES.VIDEO_NOTE]: () => ctx.replyWithVideoNote(message),
+      [CONSTANTS.MESSAGE_TYPES.DOCUMENT]: () => ctx.replyWithDocument(message),
+      [CONSTANTS.MESSAGE_TYPES.TEXT]: () => ctx.reply(message, { parse_mode: 'HTML' })
     };
 
-    return messageHandlers[type]?.() || messageHandlers.text();
+    return messageHandlers[type]?.() || messageHandlers[CONSTANTS.MESSAGE_TYPES.TEXT]();
   }
 
   async tagAllMembers(ctx, chatId) {

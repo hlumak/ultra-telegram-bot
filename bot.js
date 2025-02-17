@@ -17,7 +17,9 @@ class TelegramBot {
   }
 
   validateEnv() {
-    const missingEnvVars = CONSTANTS.REQUIRED_ENV_VARS.filter(envVar => !process.env[envVar]);
+    const missingEnvVars = CONSTANTS.REQUIRED_TELEGRAM_ENV_VARS.filter(
+      envVar => !process.env[envVar]
+    );
     if (missingEnvVars.length) {
       throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
     }
