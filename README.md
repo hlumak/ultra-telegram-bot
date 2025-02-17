@@ -81,20 +81,11 @@ npm start
 
 ## Technical Details 🔧
 
-- Built with [grammY](https://grammy.dev) Telegram Bot framework
+- Built with [grammY](https://grammy.dev) Telegram Bot Framework
 - Uses [GramJS](https://gram.js.org) for member fetching
 - Firebase Firestore for data persistence
 - Implements message chunking for large groups
 - Handles custom emoji entities
-
-## Error Handling 🚨
-
-The bot includes comprehensive error handling for:
-- Invalid chat types
-- Missing permissions
-- API limitations
-- Network issues
-- Database errors
 
 ## License 📝
 
