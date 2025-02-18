@@ -1,6 +1,6 @@
 # Ultra Telegram Tag Bot 🤖
 
-A powerful Telegram bot that helps manage group conversations by providing advanced member tagging functionality with customizable messages, GIFs, and stickers.
+A powerful Telegram bot that helps manage group conversations by providing advanced member tagging functionality with customizable messages.
 
 ## Features ✨
 
@@ -15,7 +15,7 @@ A powerful Telegram bot that helps manage group conversations by providing advan
 
 - `/tag_all` - Tag all group members with the configured message
 - `/tag_all_without_msg` - Tag all members without displaying the configured message
-- `/set_tag_msg` - Update the tagging message (text, GIF, or sticker)
+- `/set_tag_msg` - Update the tagging message (text, audio, video, photo, document, GIF or sticker)
 - `/about` - Display information about the bot and its author
 
 ## Setup 🛠️
