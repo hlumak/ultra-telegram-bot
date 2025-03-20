@@ -51,7 +51,9 @@ class TelegramBot {
     try {
       await this.telegramService.initialize();
       await this.bot.api.setMyCommands(CONSTANTS.BOT_COMMANDS);
-      await this.bot.start();
+      await this.bot.start({
+        drop_pending_updates: true
+      });
       console.log('Bot started successfully');
     } catch (error) {
       console.error('Failed to start bot:', error);
