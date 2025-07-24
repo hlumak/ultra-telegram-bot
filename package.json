@@ -15,12 +15,12 @@
   "license": "GPL-3.0",
   "description": "It's the telegram bot for mention all users in the group",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "firebase": "^11.4.0",
-    "grammy": "^1.35.0",
+    "dotenv": "^17.2.1",
+    "firebase": "^12.0.0",
+    "grammy": "^1.37.0",
     "telegram": "^2.26.22"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.10"
   }
 }
